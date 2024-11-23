@@ -97,8 +97,7 @@ class NeRF(nn.Module):
         # "... allowing the RGB color $c$ to be predicted as a function of both location and viewing direction."
         rgb_out = self.lin_color(x)  # (batch_size, 3)
         # "This feature vector is then concatenated with the camera ray's viewing direction and passed to one additional fully-connected layer that output the view-dependent RGB color."
-        # $\mathbf{c}(\mathbf{r}(t), d)$.
-        # $\mathbf{c} = (r, g, b)$.
+        # $\mathbf{c}(\mathbf{r}(t), d) = (r, g, b)$.
         return torch.cat([density_out, rgb_out], dim=-1)  # (batch_size, 4)
 
 
