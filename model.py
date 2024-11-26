@@ -1,10 +1,12 @@
+# Reference: https://csm-kr.tistory.com/64
+
 import torch
 import torch.nn as nn
 import math
 
 
 class PositionalEncoding(nn.Module):
-    def __init__(self, l: int = 10, include_input: bool = True):
+    def __init__(self, l, include_input: bool = True):
         super().__init__()
 
         self.include_input = include_input
@@ -12,9 +14,7 @@ class PositionalEncoding(nn.Module):
         freq_bands = 2. ** torch.arange(0, l)
         self.fn = lambda x: torch.cat(
             [
-                fn(freq * math.pi * x)
-                for freq in freq_bands
-                for fn in [torch.sin, torch.cos]
+                fn(freq * math.pi * x) for freq in freq_bands for fn in [torch.sin, torch.cos]
             ],
             dim=-1,
         )
@@ -28,9 +28,6 @@ class PositionalEncoding(nn.Module):
 
 
 class NeRF(nn.Module):
-    """
-    Reference: https://csm-kr.tistory.com/64
-    """
     def __init__(
         self, width: int = 256, coord_channels: int = 60, direc_channels: int = 24,
     ):

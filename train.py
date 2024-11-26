@@ -3,9 +3,10 @@ import numpy as np
 
 from data import load_blender
 
-# "We synthesize images by sampling 5D coordinates (location and viewing direction) along camera rays (a), feeding those locations into an MLP to produce a color and volume density (b), and using volume ren- dering techniques to composite these values into an image (c). This rendering function is di erentiable, so we can optimize our scene representation by mini- mizing the residual between synthesized and ground truth observed images (d)."
+# "We synthesize images by sampling 5D coordinates (location and viewing direction) along camera rays (a), feeding those locations into an MLP to produce a color and volume density (b), and using volume rendering techniques to composite these values into an image (c). This rendering function is di erentiable, so we can optimize our scene representation by mini- mizing the residual between synthesized and ground truth observed images (d)."
 # For each image, sample a set of rays corresponding to the pixels of the image.
 # For each ray, compute the 3D points along the ray’s path.
+# "We use a strati ed sampling approach where we partition [tn; tf ] into N evenly-spaced bins and then draw one sample uniformly at random from within each bin:"
 
 
 def get_ray_origins_and_direcs(
@@ -16,8 +17,8 @@ def get_ray_origins_and_direcs(
     `intrinsic`: Intrinsic camera matrix $K$ of shape (3, 3).
     `pose`: Extrinsic matrix $[R|t]$ of shape (3, 4).
     Returns:
-        `ray_origins`: `The starting point of the ray (camera position)
-        `ray_direcs`: The direction of the ray in 3D space.
+        `ray_origins`: The starting point of the ray (camera position) of shape (batch_size, 3).
+        `ray_direcs`: The direction of the ray in 3D space of shape (batch_size, 3)..
     """
     j, i = torch.meshgrid(
         torch.linspace(0, h - 1, h), torch.linspace(0, w - 1, w),
@@ -48,14 +49,18 @@ def get_ray_origins_and_direcs(
     # Each entry is the camera's origin (usually the same for all rays).
     # The origin of each ray (the camera position in world coordinates).
     # This applies the rotation part of the pose matrix to the direction vectors to transform them from the camera's local coordinate system to the world coordinate system.
-    return ray_origins, ray_direcs
+    return ray_origins, ray_direcs  # $\mathbf{o}$, $\mathbf{d}$.
 
 
-def sample_rays_and_pixels(ray_origins, ray_direcs, img, batch_size=1024):
+def sample_rays_and_pixels(
+    ray_origins: torch.Tensor,
+    ray_direcs: torch.Tensor,
+    img: np.array,
+    batch_size: int,
+) -> tuple(torch.Tensor, torch.Tensor, np.array):
     h, w, *_ = img.shape
     coords = torch.stack(
-        torch.meshgrid(torch.arange(h), torch.arange(w)),
-        dim=-1,
+        torch.meshgrid(torch.arange(h), torch.arange(w)), dim=-1,
     )  # (`h`, `w`, 2)
     coords = torch.reshape(coords, [-1, 2])  # (`hw`, 2)
     selected_idx = np.random.choice(
