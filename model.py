@@ -67,7 +67,7 @@ class NeRF(nn.Module):
             # "... Using a ReLU activation and 128 channels."
             nn.ReLU(inplace=True),
             nn.Linear(width // 2, 3),  # `3`: RGB.
-            nn.Sigmoid(inplace=True),
+            nn.Sigmoid(),
         )
     def forward(self, x):
         coord, direc = torch.split(
@@ -105,6 +105,10 @@ if __name__ == "__main__":
     device = torch.device("mps")
     nerf = NeRF(coord_channels=channels, direc_channels=direc_channels).to(device)
     x = torch.randn((batch_size, channels + direc_channels), device=device)
-
     out = nerf(x)
+    print(out.shape)
+
+    pe = PositionalEncoding(l=10)
+    x = torch.randn((batch_size, 3), device=device)
+    out = pe(x)
     print(out.shape)
